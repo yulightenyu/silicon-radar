@@ -19,6 +19,8 @@ FEEDS = [
     "https://wccftech.com/feed/",
     "https://www.servethehome.com/feed/",
     "https://riscv.org/feed/",
+    "https://blocksandfiles.com/feed/",
+    "https://www.techpowerup.com/rss/news",
 ]
 HBM_KW   = ["hbm","hbm3","hbm4","hbm4e","high bandwidth memory","high-bandwidth memory","stacked dram"]
 MEM_KW   = ["dram","nand"," memory","ddr5","ddr4","gddr","flash storage",
