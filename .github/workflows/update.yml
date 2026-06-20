@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install deps
-        run: pip install yfinance feedparser
+        run: pip install yfinance feedparser deep-translator
       - name: Fetch data
         run: python fetch.py
       - name: Upload site
