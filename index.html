@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>RADAR · 内存 · 算力 · RISC-V</title>
+<meta name="theme-color" content="#0b0e14">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e14;--surface:#131925;--surface2:#1a2231;
+    --line:rgba(150,170,200,.13);--text:#e7ecf3;--muted:#8995a8;
+    --copper:#d98a4f;--up:#46b39a;--down:#e0726a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);
+    font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+    padding-bottom:60px;}
+  .mono{font-family:"IBM Plex Mono",monospace;}
+  .wrap{max-width:920px;margin:0 auto;padding:0 18px;}
+  header{position:sticky;top:0;z-index:20;background:rgba(11,14,20,.9);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+    padding-top:calc(16px + env(safe-area-inset-top,0));padding-bottom:16px;}
+  .htop{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .brand{display:flex;flex-direction:column;line-height:1;}
+  .brand .nm{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:21px;
+    letter-spacing:.16em;}
+  .brand .nm b{color:var(--copper);}
+  .brand .sub{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;
+    color:var(--muted);margin-top:6px;}
+  .refresh{flex:none;display:flex;align-items:center;gap:7px;cursor:pointer;
+    background:var(--surface);border:1px solid var(--line);border-radius:100px;
+    color:var(--text);font-size:12.5px;padding:9px 15px;font-family:"IBM Plex Mono",monospace;}
+  .refresh:active{transform:scale(.96);}
+  .refresh svg{width:14px;height:14px;}
+  .upd{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);
+    margin-top:11px;}
+  .upd .dot{color:var(--up);}
+  .sec{margin-top:30px;}
+  .sec-h{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;}
+  .sec-h .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--copper);}
+  .sec-h h2{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:19px;}
+  .stocks{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+  .stk{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px 16px;}
+  .stk .nm{font-weight:600;font-size:14.5px;}
+  .stk .tk{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);margin-top:3px;}
+  .stk .pr{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:23px;margin-top:12px;}
+  .stk .pr small{font-size:11px;color:var(--muted);font-weight:400;}
+  .stk .ch{font-family:"IBM Plex Mono",monospace;font-size:13px;margin-top:5px;font-weight:500;}
+  .up{color:var(--up);} .down{color:var(--down);} .flat{color:var(--muted);}
+  .news .item{display:block;text-decoration:none;color:inherit;
+    padding:14px 0;border-bottom:1px solid var(--line);}
+  .news .item:active{opacity:.6;}
+  .news .item h3{font-size:14.5px;font-weight:500;line-height:1.4;color:var(--text);}
+  .news .item .meta{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);
+    margin-top:7px;display:flex;gap:9px;align-items:center;}
+  .news .item .meta .s{color:var(--copper);}
+  .empty{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);
+    padding:18px 0;}
+  .loading{text-align:center;padding:60px 20px;color:var(--muted);}
+  .spinner{width:24px;height:24px;border:2.5px solid var(--line);border-top-color:var(--copper);
+    border-radius:50%;margin:0 auto 14px;animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  footer{text-align:center;color:var(--muted);font-family:"IBM Plex Mono",monospace;
+    font-size:10px;padding:36px 20px 0;line-height:1.7;}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="htop">
+      <div class="brand">
+        <span class="nm">RA<b>D</b>AR</span>
+        <span class="sub">内存 · 算力 · RISC-V</span>
+      </div>
+      <button class="refresh" id="refresh">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0114.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0020.5 15"/></svg>
+        刷新
+      </button>
+    </div>
+    <div class="upd" id="upd">载入中…</div>
+  </div>
+</header>
+<main class="wrap" id="app">
+  <div class="loading"><div class="spinner"></div>正在拉取数据…</div>
+</main>
+<footer>
+  数据每 6 小时自动更新 · 股价 yfinance · 新闻聚合自公开 RSS<br>
+  仅供参考，非投资建议
+</footer>
+<script>
+const app = document.getElementById('app');
+const updEl = document.getElementById('upd');
+function rel(iso){
+  if(!iso) return '';
+  const d = new Date(iso), now = new Date();
+  const m = Math.floor((now - d)/60000);
+  if(m < 1) return '刚刚';
+  if(m < 60) return m + ' 分钟前';
+  const h = Math.floor(m/60);
+  if(h < 24) return h + ' 小时前';
+  const dy = Math.floor(h/24);
+  return dy + ' 天前';
+}
+function fmtPrice(s){
+  if(s.price == null) return '<span class="flat">—</span>';
+  const sym = {USD:'$', CNY:'¥', KRW:'₩'}[s.ccy] || '';
+  return sym + s.price.toLocaleString();
+}
+function chgHtml(s){
+  if(s.chg == null) return '<span class="flat">—</span>';
+  const cls = s.chg > 0 ? 'up' : (s.chg < 0 ? 'down' : 'flat');
+  const arr = s.chg > 0 ? '▲' : (s.chg < 0 ? '▼' : '·');
+  const sign = s.chg > 0 ? '+' : '';
+  return '<span class="'+cls+'">'+arr+' '+sign+s.chg+'%</span>';
+}
+function stockCard(s){
+  return '<div class="stk"><div class="nm">'+s.name+'</div>'
+    +'<div class="tk">'+s.tick+'</div>'
+    +'<div class="pr">'+fmtPrice(s)+' <small>'+s.ccy+'</small></div>'
+    +'<div class="ch">'+chgHtml(s)+'</div></div>';
+}
+function newsList(items){
+  if(!items || items.length === 0) return '<div class="empty">// 暂无匹配新闻</div>';
+  return items.map(function(it){
+    return '<a class="item" href="'+it.link+'" target="_blank" rel="noopener">'
+      +'<h3>'+it.title+'</h3>'
+      +'<div class="meta"><span class="s">'+(it.src||'')+'</span><span>'+rel(it.date)+'</span></div></a>';
+  }).join('');
+}
+function section(lbl, title, items){
+  return '<section class="sec"><div class="sec-h"><span class="lbl">'+lbl+'</span>'
+    +'<h2>'+title+'</h2></div><div class="news">'+newsList(items)+'</div></section>';
+}
+function render(d){
+  updEl.innerHTML = '<span class="dot">●</span> 更新于 ' + rel(d.updated) + ' · UTC';
+  let html = '<section class="sec"><div class="sec-h"><span class="lbl">Watchlist</span>'
+    + '<h2>持仓 · 关注</h2></div><div class="stocks">'
+    + d.stocks.map(stockCard).join('') + '</div></section>';
+  html += section('Memory', '内存 · DRAM / HBM / NAND', d.memory);
+  html += section('Compute', '算力 · GPU / CPU / TPU', d.compute);
+  html += section('RISC-V', 'RISC-V · 工业化进程', d.riscv);
+  app.innerHTML = html;
+}
+async function load(){
+  try{
+    const res = await fetch('data.json?t=' + Date.now());
+    if(!res.ok) throw new Error('data.json ' + res.status);
+    render(await res.json());
+  }catch(e){
+    app.innerHTML = '<div class="loading">拉取失败：' + e.message
+      + '<br><br>若是刚部署，等首次 Actions 跑完(约1-2分钟)再刷新。</div>';
+    updEl.textContent = '';
+  }
+}
+document.getElementById('refresh').addEventListener('click', load);
+load();
+</script>
+</body>
+</html>
