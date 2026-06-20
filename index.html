@@ -48,6 +48,10 @@
   .hc .tk{font-family:"Space Grotesk",sans-serif;font-size:10px;color:var(--muted);margin-top:2px;}
   .hc .pct{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:30px;line-height:1;margin-top:12px;}
   .hc .pr{font-family:"Space Grotesk",sans-serif;font-size:12px;color:var(--muted);margin-top:7px;}
+  .hc .hi{font-size:10.5px;color:var(--muted);margin-top:4px;}
+  .hc .hi .fh.near{color:var(--green);font-weight:600;}
+  .hc .hi .fh{font-weight:600;}
+  .hc .hi .fh.near{color:var(--green);}
   .up{color:var(--green);} .down{color:var(--red);} .flat{color:var(--muted);}
   .hc.up{border-color:rgba(20,122,69,.35);} .hc.down{border-color:rgba(204,58,51,.35);}
   .hc .bar{position:absolute;left:0;top:0;bottom:0;width:4px;}
@@ -111,10 +115,16 @@ function hcard(s){
   const has=s.chg!=null, cls=has?(s.chg>0?'up':(s.chg<0?'down':'flat')):'flat';
   const arr=has?(s.chg>0?'▲':(s.chg<0?'▼':'')):''; const g=has&&s.chg>0?'+':'';
   const pct=has?(arr+' '+g+s.chg+'%'):'—';
+  let hi='';
+  if(s.high52!=null){
+    const fh=s.from_high, near=(fh!=null&&fh>-5);
+    hi='<div class="hi">52周 '+s.low52+' ~ '+s.high52
+      +(fh!=null?' <span class="fh'+(near?' near':'')+'">('+(fh>0?'+':'')+fh+'%)</span>':'')+'</div>';
+  }
   return '<div class="hc '+cls+'"><span class="bar"></span>'
     +'<div class="nm">'+shortName(s)+'</div><div class="tk">'+s.tick+'</div>'
     +'<div class="pct '+cls+'">'+pct+'</div>'
-    +'<div class="pr">'+fmtPrice(s)+' '+s.ccy+'</div></div>';
+    +'<div class="pr">'+fmtPrice(s)+' '+s.ccy+'</div>'+hi+'</div>';
 }
 function leadItem(it,star){
   const txt=it.zh||it.title;
@@ -128,11 +138,12 @@ function rowItem(it){
     +'<div class="zh">'+txt+'</div>'
     +'<div class="meta"><span class="s">'+(it.src||'')+'</span><span>'+rel(it.date)+'</span></div></a>';
 }
-function secHead(no,title,n){
+function secHead(no,title,n,today){
+  const tg=today?(n+' 条 · 今 '+today):(n+' 条');
   return '<div class="sh"><span class="no">SECTION '+no+'</span><span class="ti">'+title+'</span>'
-    +'<span class="ln"></span><span class="tg">'+n+' 条</span></div>';
+    +'<span class="ln"></span><span class="tg">'+tg+'</span></div>';
 }
-function newsSec(no,title,items,star){
+function newsSec(no,title,items,star,today){
   const list=items||[];
   let body;
   if(!list.length){body='<div class="empty">// 暂无相关新闻</div>';}
@@ -141,17 +152,17 @@ function newsSec(no,title,items,star){
     const rest=list.slice(1,4);
     if(rest.length)body+='<div class="rows">'+rest.map(rowItem).join('')+'</div>';
   }
-  return secHead(no,title,list.length)+body;
+  return secHead(no,title,list.length,today)+body;
 }
 function render(d){
   updEl.innerHTML='<span class="dot"></span> 更新于 '+rel(d.updated)+' · UTC';
   let html=secHead('01','<b>行情</b> · 持仓关注',d.stocks.length);
   html+='<div class="hero">'+d.stocks.map(hcard).join('')+'</div>';
-  html+=newsSec('02','<b>美光</b> · 专题',d.micron,'mu');
-  html+=newsSec('03','<b>HBM</b> · 高带宽内存',d.hbm,'star');
-  html+=newsSec('04','内存 · DRAM / NAND',d.memory,'');
-  html+=newsSec('05','算力 · GPU / CPU / TPU',d.compute,'');
-  html+=newsSec('06','RISC-V · 工业化',d.riscv,'');
+  html+=newsSec('02','<b>美光</b> · 专题',d.micron,'mu',d.today&&d.today.micron);
+  html+=newsSec('03','<b>HBM</b> · 高带宽内存',d.hbm,'star',d.today&&d.today.hbm);
+  html+=newsSec('04','内存 · DRAM / NAND',d.memory,'',d.today&&d.today.memory);
+  html+=newsSec('05','算力 · GPU / CPU / TPU',d.compute,'',d.today&&d.today.compute);
+  html+=newsSec('06','RISC-V · 工业化',d.riscv,'',d.today&&d.today.riscv);
   app.innerHTML=html;
 }
 async function load(){try{const r=await fetch('data.json?t='+Date.now());
