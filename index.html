@@ -56,6 +56,8 @@
   .lead.star{border-color:rgba(20,122,69,.4);border-left:5px solid var(--green);}
   .lead .zh{font-weight:700;font-size:17px;line-height:1.4;}
   .lead.star .zh{color:var(--green);}
+  .lead.mu{border-color:rgba(189,131,22,.4);border-left:5px solid var(--gold);}
+  .lead.mu .zh{color:var(--gold);}
   .lead .meta,.row .meta{font-size:11px;color:var(--muted);margin-top:9px;display:flex;gap:9px;align-items:center;}
   .lead .meta .s,.row .meta .s{font-family:"Space Grotesk",sans-serif;font-weight:600;color:var(--blue);}
   .rows{margin-top:8px;}
@@ -115,7 +117,7 @@ function hcard(s){
 }
 function leadItem(it,star){
   const txt=it.zh||it.title;
-  return '<a class="lead'+(star?' star':'')+'" href="'+it.link+'" target="_blank" rel="noopener">'
+  return '<a class="lead'+(star?' '+star:'')+'" href="'+it.link+'" target="_blank" rel="noopener">'
     +'<div class="zh">'+txt+'</div>'
     +'<div class="meta"><span class="s">'+(it.src||'')+'</span><span>'+rel(it.date)+'</span></div></a>';
 }
@@ -144,10 +146,11 @@ function render(d){
   updEl.innerHTML='<span class="dot"></span> 更新于 '+rel(d.updated)+' · UTC';
   let html=secHead('01','<b>行情</b> · 持仓关注',d.stocks.length);
   html+='<div class="hero">'+d.stocks.map(hcard).join('')+'</div>';
-  html+=newsSec('02','<b>HBM</b> · 高带宽内存',d.hbm,true);
-  html+=newsSec('03','内存 · DRAM / NAND',d.memory,false);
-  html+=newsSec('04','算力 · GPU / CPU / TPU',d.compute,false);
-  html+=newsSec('05','RISC-V · 工业化',d.riscv,false);
+  html+=newsSec('02','<b>美光</b> · 专题',d.micron,'mu');
+  html+=newsSec('03','<b>HBM</b> · 高带宽内存',d.hbm,'star');
+  html+=newsSec('04','内存 · DRAM / NAND',d.memory,'');
+  html+=newsSec('05','算力 · GPU / CPU / TPU',d.compute,'');
+  html+=newsSec('06','RISC-V · 工业化',d.riscv,'');
   app.innerHTML=html;
 }
 async function load(){try{const r=await fetch('data.json?t='+Date.now());

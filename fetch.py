@@ -29,6 +29,7 @@ CMP_KW   = [" gpu"," cpu"," tpu"," npu","amd","intel","nvidia","accelerator",
             "processor"," arm ","xeon","ryzen","epyc","instinct","blackwell",
             "data center","datacenter","ai chip","tensor"]
 RISCV_KW = ["risc-v","riscv"]
+MICRON_KW = ["micron"]
 
 def get_stocks():
     out = []
@@ -85,16 +86,17 @@ def translate_top(items, n=4):
 
 def main():
     news = get_news()
+    micron = bucket(news, MICRON_KW)
     hbm = bucket(news, HBM_KW)
     mem = bucket(news, MEM_KW)
     cmp_ = bucket(news, CMP_KW)
     rv = bucket(news, RISCV_KW)
-    for b in (hbm, mem, cmp_, rv):
+    for b in (micron, hbm, mem, cmp_, rv):
         translate_top(b, 4)
     data = {
         "updated": datetime.datetime.utcnow().isoformat() + "Z",
         "stocks": get_stocks(),
-        "hbm": hbm, "memory": mem, "compute": cmp_, "riscv": rv,
+        "micron": micron, "hbm": hbm, "memory": mem, "compute": cmp_, "riscv": rv,
     }
     with open("data.json","w",encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
