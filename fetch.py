@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Silicon Radar v2"""
+"""Silicon Radar v3"""
 import json, datetime, traceback
 import yfinance as yf
 import feedparser
@@ -20,7 +20,8 @@ FEEDS = [
     "https://www.servethehome.com/feed/",
     "https://riscv.org/feed/",
 ]
-MEM_KW   = ["dram","nand","hbm"," memory","ddr5","ddr4","gddr","flash storage",
+HBM_KW   = ["hbm","hbm3","hbm4","hbm4e","high bandwidth memory","high-bandwidth memory","stacked dram"]
+MEM_KW   = ["dram","nand"," memory","ddr5","ddr4","gddr","flash storage",
             "micron","hynix","sk hynix","samsung memory","yangtze","cxl"]
 CMP_KW   = [" gpu"," cpu"," tpu"," npu","amd","intel","nvidia","accelerator",
             "processor"," arm ","xeon","ryzen","epyc","instinct","blackwell",
@@ -82,16 +83,20 @@ def translate_top(items, n=4):
 
 def main():
     news = get_news()
-    mem, cmp_, rv = bucket(news, MEM_KW), bucket(news, CMP_KW), bucket(news, RISCV_KW)
-    for b in (mem, cmp_, rv):
+    hbm = bucket(news, HBM_KW)
+    mem = bucket(news, MEM_KW)
+    cmp_ = bucket(news, CMP_KW)
+    rv = bucket(news, RISCV_KW)
+    for b in (hbm, mem, cmp_, rv):
         translate_top(b, 4)
     data = {
         "updated": datetime.datetime.utcnow().isoformat() + "Z",
-        "stocks": get_stocks(), "memory": mem, "compute": cmp_, "riscv": rv,
+        "stocks": get_stocks(),
+        "hbm": hbm, "memory": mem, "compute": cmp_, "riscv": rv,
     }
     with open("data.json","w",encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-    print("done | mem=%d cmp=%d riscv=%d" % (len(mem), len(cmp_), len(rv)))
+    print("done | hbm=%d mem=%d cmp=%d riscv=%d" % (len(hbm), len(mem), len(cmp_), len(rv)))
 
 if __name__ == "__main__":
     main()
