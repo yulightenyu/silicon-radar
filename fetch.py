@@ -1,40 +1,22 @@
 #!/usr/bin/env python3
-import json, datetime, traceback
-import yfinance as yf
-import feedparser
+import json, datetime, feedparser
 from deep_translator import GoogleTranslator
 
-STOCKS = [
-    {"name": "Micron",       "tick": "MU",        "ccy": "USD"},
-    {"name": "Samsung",      "tick": "005930.KS", "ccy": "KRW"},
-    {"name": "SK hynix",     "tick": "000660.KS", "ccy": "KRW"},
-    {"name": "Ingenic 君正", "tick": "300223.SZ", "ccy": "CNY"},
-]
 FEEDS = [
     "https://www.tomshardware.com/feeds/all", "https://semiengineering.com/feed/",
     "https://www.eetimes.com/feed/", "https://www.theregister.com/Tag/hardware/headlines.atom",
     "https://wccftech.com/feed/", "https://www.servethehome.com/feed/",
     "https://riscv.org/feed/", "https://blocksandfiles.com/feed/", "https://www.techpowerup.com/rss/news",
+    "https://investors.micron.com/rss/news-releases.xml",
+    "https://seekingalpha.com/api/v3/symbols/MU/press-releases.xml",
+    "https://news.google.com/rss/search?q=Micron+Technology"
 ]
-HBM_KW = ["hbm","hbm3","hbm4","hbm4e","high bandwidth memory","high-bandwidth memory","stacked dram"]
-MEM_KW = ["dram","nand"," memory","ddr5","ddr4","gddr","flash storage","micron","hynix","sk hynix","samsung memory","yangtze","cxl"]
-CMP_KW = [" gpu"," cpu"," tpu"," npu","amd","intel","nvidia","accelerator","processor"," arm ","xeon","ryzen","epyc","instinct","blackwell","data center","datacenter","ai chip","tensor"]
-RISCV_KW = ["risc-v","riscv"]
-MICRON_KW = ["micron", "mu stock"]
 
-def get_stocks():
-    out = []
-    for s in STOCKS:
-        item = {"name": s["name"], "tick": s["tick"], "ccy": s["ccy"], "price": None, "chg": None}
-        try:
-            h = yf.Ticker(s["tick"]).history(period="5d")
-            if len(h) >= 2:
-                last = float(h["Close"].iloc[-1]); prev = float(h["Close"].iloc[-2])
-                item["price"] = round(last, 2); item["chg"] = round((last-prev)/prev*100, 2)
-            elif len(h) == 1: item["price"] = round(float(h["Close"].iloc[-1]), 2)
-        except Exception: pass
-        out.append(item)
-    return out
+MICRON_KW = ["micron", "mu", "memory", "storage"]
+HBM_KW = ["hbm", "hbm3", "hbm4", "high bandwidth memory"]
+MEM_KW = ["dram", "nand", "ddr5", "hynix", "samsung", "cxl"]
+CMP_KW = ["gpu", "cpu", "tpu", "amd", "intel", "nvidia", "accelerator"]
+RISCV_KW = ["risc-v", "riscv"]
 
 def get_news():
     seen, items = set(), []
@@ -72,7 +54,7 @@ def main():
     news = get_news()
     data = {
         "updated": datetime.datetime.utcnow().isoformat() + "Z",
-        "stocks": get_stocks(),
+        "stocks": [],
         "micron": translate_top(bucket(news, MICRON_KW), 4),
         "hbm": translate_top(bucket(news, HBM_KW), 4),
         "memory": translate_top(bucket(news, MEM_KW), 4),
